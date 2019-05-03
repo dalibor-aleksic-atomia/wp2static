@@ -30,6 +30,29 @@ function convertToOfflineURL( $url_to_change, $page_url, $placeholder_url  ) {
 
     $offline_url = $current_page_path_to_root . $rewritten_url;
 
+    /*
+        We must address the case where the WP site uses a URL such as
+        `/some-page`, which is valid and will work outside offline use cases.
+
+        For offline usage, we need to force any detected HTML content paths to
+        have a trailing slash, allowing for easily appending `index.html`
+        for proper offline usage compatibility.
+
+        We can risk using file path detection here, as images and other assets
+        will also need to be explcitly named for offline usage and should be
+        handled elsewhere in the case they are being served without an
+        extension.
+
+        Here, we will detect for any URLs without a `.` in the last segment,
+        append /index.html and strip and duplicate slashes
+
+            /           => //index.html             => /index.html
+            /some-post  => /some-post/index.html
+            /some-post/ => /some-post//index.html   => /some-post/index.html
+            /an-img.jpg # no match
+
+    */
+
     // add index.html if no extension
     if ( substr( $offline_url, -1 ) === '/' ) {
         // TODO: check XML/RSS case
